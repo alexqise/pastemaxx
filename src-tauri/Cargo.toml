@@ -1,0 +1,50 @@
+[package]
+name = "pastemaxx"
+version = "0.1.0"
+description = "A liquid-glass clipboard manager for macOS"
+authors = ["alexqi321@gmail.com"]
+edition = "2021"
+rust-version = "1.77.2"
+
+[lib]
+name = "app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.6.3", features = [] }
+
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+tauri = { version = "2.11.3", features = ["tray-icon", "image-png", "macos-private-api", "protocol-asset"] }
+tauri-plugin-global-shortcut = "2"
+tauri-plugin-autostart = "2"
+tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2.1" }
+window-vibrancy = "0.6"
+rusqlite = { version = "0.32", features = ["bundled"] }
+sha2 = "0.10"
+image = { version = "0.25", default-features = false, features = ["png"] }
+objc2 = "0.6"
+objc2-foundation = "0.3"
+objc2-app-kit = { version = "0.3", features = [
+  "NSPasteboard",
+  "NSPasteboardItem",
+  "NSWorkspace",
+  "NSRunningApplication",
+  "NSImage",
+  "NSImageRep",
+  "NSBitmapImageRep",
+  "NSGraphics",
+  "NSWindow",
+  "NSResponder",
+  "NSApplication",
+  "NSEvent",
+  "NSScreen",
+] }
+core-graphics = { version = "0.25", features = ["elcapitan"] }
+core-foundation = "0.10"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
