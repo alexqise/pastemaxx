@@ -4,6 +4,8 @@ A lightweight, liquid-glass clipboard manager for macOS. Press **⌘⇧V** and a
 
 Built with Tauri v2 (Rust) + Svelte 5. macOS only. All history stays on your machine.
 
+![The PasteMaxx bar showing text, code, image, and file clipboard items](docs/screenshot.png)
+
 ## Install
 
 **Prerequisites** (skip any you already have):
