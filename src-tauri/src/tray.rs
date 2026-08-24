@@ -9,6 +9,18 @@ use tauri_plugin_autostart::ManagerExt;
 pub fn create(app: &AppHandle) -> tauri::Result<()> {
     let toggle = MenuItem::with_id(app, "toggle", "Show Clipboard Bar", true, Some("Cmd+Shift+V"))?;
     let clear = MenuItem::with_id(app, "clear", "Clear History", true, None::<&str>)?;
+    let shots_on = app
+        .state::<AppState>()
+        .capture_screenshots
+        .load(std::sync::atomic::Ordering::SeqCst);
+    let screenshots = CheckMenuItem::with_id(
+        app,
+        "screenshots",
+        "Capture Screenshots",
+        true,
+        shots_on,
+        None::<&str>,
+    )?;
     let autostart_on = app.autolaunch().is_enabled().unwrap_or(false);
     let login = CheckMenuItem::with_id(
         app,
@@ -26,6 +38,7 @@ pub fn create(app: &AppHandle) -> tauri::Result<()> {
             &PredefinedMenuItem::separator(app)?,
             &clear,
             &PredefinedMenuItem::separator(app)?,
+            &screenshots,
             &login,
             &PredefinedMenuItem::separator(app)?,
             &quit,
@@ -45,6 +58,16 @@ pub fn create(app: &AppHandle) -> tauri::Result<()> {
                 let _ = db::clear_all(&conn);
                 drop(conn);
                 let _ = app.emit("items-changed", ());
+            }
+            "screenshots" => {
+                let state = app.state::<AppState>();
+                let now_on = !state
+                    .capture_screenshots
+                    .fetch_xor(true, std::sync::atomic::Ordering::SeqCst);
+                let conn = state.db.lock().unwrap();
+                db::set_setting(&conn, "capture_screenshots", if now_on { "1" } else { "0" });
+                drop(conn);
+                let _ = screenshots.set_checked(now_on);
             }
             "login" => {
                 let autolaunch = app.autolaunch();

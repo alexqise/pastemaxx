@@ -111,35 +111,7 @@ fn build_item(
             })
         }
         Captured::Image { png } => {
-            let mut hasher = Sha256::new();
-            hasher.update(&png);
-            let hash = hex(&hasher.finalize());
-            let image_path = state.images_dir.join(format!("{hash}.png"));
-            let thumb_path = state.images_dir.join(format!("{hash}.thumb.png"));
-            let mut byte_size = png.len() as i64;
-            if !image_path.exists() {
-                std::fs::write(&image_path, &png).ok()?;
-                if let Some(thumb) = downscale_png(&png, THUMB_MAX_DIM) {
-                    byte_size += thumb.len() as i64;
-                    let _ = std::fs::write(&thumb_path, thumb);
-                }
-            }
-            Some(NewItem {
-                kind: "image",
-                hash,
-                plain_text: None,
-                rtf: None,
-                html: None,
-                image_path: Some(image_path.to_string_lossy().to_string()),
-                thumb_path: thumb_path
-                    .exists()
-                    .then(|| thumb_path.to_string_lossy().to_string()),
-                file_paths: None,
-                byte_size,
-                source_app,
-                source_bundle_id,
-                source_icon_path,
-            })
+            image_item_from_bytes(state, png, source_app, source_bundle_id, source_icon_path)
         }
         Captured::Files { paths } => {
             let joined = paths.join("\n");
@@ -164,6 +136,46 @@ fn build_item(
             })
         }
     }
+}
+
+/// Build an image history item from raw PNG bytes (used by the clipboard
+/// watcher and the screenshot watcher).
+pub fn image_item_from_bytes(
+    state: &AppState,
+    png: Vec<u8>,
+    source_app: Option<String>,
+    source_bundle_id: Option<String>,
+    source_icon_path: Option<String>,
+) -> Option<NewItem<'static>> {
+    let mut hasher = Sha256::new();
+    hasher.update(&png);
+    let hash = hex(&hasher.finalize());
+    let image_path = state.images_dir.join(format!("{hash}.png"));
+    let thumb_path = state.images_dir.join(format!("{hash}.thumb.png"));
+    let mut byte_size = png.len() as i64;
+    if !image_path.exists() {
+        std::fs::write(&image_path, &png).ok()?;
+        if let Some(thumb) = downscale_png(&png, THUMB_MAX_DIM) {
+            byte_size += thumb.len() as i64;
+            let _ = std::fs::write(&thumb_path, thumb);
+        }
+    }
+    Some(NewItem {
+        kind: "image",
+        hash,
+        plain_text: None,
+        rtf: None,
+        html: None,
+        image_path: Some(image_path.to_string_lossy().to_string()),
+        thumb_path: thumb_path
+            .exists()
+            .then(|| thumb_path.to_string_lossy().to_string()),
+        file_paths: None,
+        byte_size,
+        source_app,
+        source_bundle_id,
+        source_icon_path,
+    })
 }
 
 fn hex(bytes: &[u8]) -> String {

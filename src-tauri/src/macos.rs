@@ -159,6 +159,14 @@ pub fn frontmost_app_icon_png() -> Option<Vec<u8>> {
     image_data_to_png(&tiff)
 }
 
+/// PNG bytes of the Finder icon for any file/app path.
+pub fn icon_png_for_path(path: &str) -> Option<Vec<u8>> {
+    let ws = NSWorkspace::sharedWorkspace();
+    let icon = ws.iconForFile(&NSString::from_str(path));
+    let tiff = icon.TIFFRepresentation()?;
+    image_data_to_png(&tiff)
+}
+
 /// Position the bar centered at the bottom of the screen the mouse is on.
 /// Returns the final frame origin (AppKit bottom-left coords) for animation.
 ///

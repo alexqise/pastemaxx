@@ -3,6 +3,7 @@ mod commands;
 mod db;
 mod macos;
 mod paste;
+mod screenshots;
 mod state;
 mod tray;
 mod window;
@@ -67,6 +68,8 @@ pub fn run() {
                 db::set_setting(&conn, "autostart_initialized", "1");
             }
 
+            let capture_screenshots =
+                db::get_setting(&conn, "capture_screenshots").as_deref() != Some("0");
             app.manage(AppState {
                 db: Mutex::new(conn),
                 images_dir,
@@ -77,6 +80,7 @@ pub fn run() {
                 last_paste: Mutex::new(None),
                 hiding: AtomicBool::new(false),
                 bar_origin: Mutex::new(None),
+                capture_screenshots: AtomicBool::new(capture_screenshots),
             });
 
             // Liquid glass: native vibrancy under the transparent webview.
@@ -125,6 +129,7 @@ pub fn run() {
 
             tray::create(app.handle())?;
             clipboard::spawn_watcher(app.handle().clone());
+            screenshots::spawn_watcher(app.handle().clone());
 
             // Auto-paste needs Accessibility; show the system prompt once shortly after launch.
             if !macos::ax_trusted(false) {

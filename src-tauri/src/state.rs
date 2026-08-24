@@ -20,4 +20,6 @@ pub struct AppState {
     pub hiding: AtomicBool,
     /// resting frame origin of the bar (AppKit coords), set when shown.
     pub bar_origin: Mutex<Option<(f64, f64)>>,
+    /// whether screenshots saved to disk are ingested into history.
+    pub capture_screenshots: AtomicBool,
 }

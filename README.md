@@ -53,6 +53,7 @@ The bar stays open after a paste so you can paste several items in a row. It app
 ## Features
 
 - **Captures everything** — plain text, rich text (RTF/HTML preserved and re-pasted with formatting), images/screenshots, and Finder file copies, each tagged with the source app's icon.
+- **Screenshots too** — screenshots saved to disk (⌘⇧3/4/5), which never touch the clipboard, are ingested into history automatically by watching the screenshot folder (Spotlight's screen-capture metadata handles localized filenames). Toggle "Capture Screenshots" from the menu bar icon.
 - **Pinning** — pinned items sit at the front of the bar and survive eviction and Clear History.
 - **Persistent, deduplicated history** — SQLite in `~/Library/Application Support/com.alexqi.pastemaxx/`; re-copying something bumps the existing entry instead of duplicating it. Oldest unpinned items are evicted past a 500 MB disk budget.
 - **Native liquid glass** — real `NSVisualEffectView` vibrancy under a transparent webview, with the whole window sliding up from below as one piece.
