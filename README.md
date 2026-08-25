@@ -10,6 +10,10 @@ Built with Tauri v2 (Rust) + Svelte 5. macOS only. All history stays on your mac
 
 ## Install
 
+**Download (~1 minute, Apple Silicon):** grab the `.dmg` from the [latest release](https://github.com/alexqise/pastemaxx/releases/latest) and drag PasteMaxx into Applications. The app is unsigned, so macOS blocks the first launch — click **"Open Anyway"** in System Settings → Privacy & Security, or run `xattr -d com.apple.quarantine /Applications/PasteMaxx.app`. Then grant Accessibility when prompted (used only for auto-paste) and you're done.
+
+**Or build from source** (any Mac):
+
 **Prerequisites** (skip any you already have):
 
 ```sh
