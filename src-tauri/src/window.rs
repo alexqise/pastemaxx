@@ -43,6 +43,12 @@ pub fn show_bar(app: &AppHandle) {
         state.prev_app_pid.store(pid, Ordering::SeqCst);
     }
 
+    // Refresh the display order once per open; it stays frozen while in use.
+    {
+        let conn = state.db.lock().unwrap();
+        let _ = crate::db::snapshot_order(&conn);
+    }
+
     // Position, start below-and-invisible, and order front — one main-thread
     // block so the window can't flash at its resting spot first.
     let app2 = app.clone();

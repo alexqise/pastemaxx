@@ -48,12 +48,30 @@ pub fn init(path: &Path) -> rusqlite::Result<Connection> {
            source_icon_path TEXT,
            pinned INTEGER NOT NULL DEFAULT 0,
            created_at INTEGER NOT NULL,
-           last_copied_at INTEGER NOT NULL
+           last_copied_at INTEGER NOT NULL,
+           sort_at INTEGER NOT NULL DEFAULT 0
          );
-         CREATE INDEX IF NOT EXISTS idx_items_order ON items (pinned DESC, last_copied_at DESC);
          CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);",
     )?;
+    // migration for databases created before the frozen display order existed
+    let _ = conn.execute(
+        "ALTER TABLE items ADD COLUMN sort_at INTEGER NOT NULL DEFAULT 0",
+        [],
+    );
+    conn.execute_batch(
+        "UPDATE items SET sort_at = last_copied_at WHERE sort_at = 0;
+         DROP INDEX IF EXISTS idx_items_order;
+         CREATE INDEX IF NOT EXISTS idx_items_sort ON items (pinned DESC, sort_at DESC);",
+    )?;
     Ok(conn)
+}
+
+/// Snapshot the display order from true recency. Called when the bar opens, so
+/// paste-bumps never reshuffle the cards mid-session — order refreshes on the
+/// next open instead.
+pub fn snapshot_order(conn: &Connection) -> rusqlite::Result<()> {
+    conn.execute("UPDATE items SET sort_at = last_copied_at", [])?;
+    Ok(())
 }
 
 pub fn get_setting(conn: &Connection, key: &str) -> Option<String> {
@@ -118,8 +136,8 @@ pub fn insert_or_bump(conn: &Connection, item: NewItem) -> rusqlite::Result<()> 
     conn.execute(
         "INSERT INTO items (kind, hash, plain_text, rtf, html, image_path, thumb_path, file_paths,
                             byte_size, source_app, source_bundle_id, source_icon_path,
-                            pinned, created_at, last_copied_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, 0, ?13, ?13)",
+                            pinned, created_at, last_copied_at, sort_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, 0, ?13, ?13, ?13)",
         params![
             item.kind,
             item.hash,
@@ -180,7 +198,7 @@ pub fn list(conn: &Connection, query: &str) -> rusqlite::Result<Vec<ItemDto>> {
                 (rtf IS NOT NULL OR html IS NOT NULL)
          FROM items
          WHERE ?1 = '' OR plain_text LIKE '%' || ?1 || '%'
-         ORDER BY pinned DESC, last_copied_at DESC
+         ORDER BY pinned DESC, sort_at DESC
          LIMIT 200",
     )?;
     let rows = stmt.query_map(params![query], |r| {
