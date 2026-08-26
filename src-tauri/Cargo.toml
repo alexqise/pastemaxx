@@ -1,6 +1,6 @@
 [package]
 name = "pastemaxx"
-version = "0.1.0"
+version = "0.1.1"
 description = "A liquid-glass clipboard manager for macOS"
 authors = ["alexqi321@gmail.com"]
 edition = "2021"
